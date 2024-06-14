@@ -78,10 +78,10 @@ Exercise 1.1: Below is a sequence of expressions. What is the result printed by 
 ; (A 2 4) and (A 3 3) = 65536
 (define (A x y)
   (cond ((= y 0) 0)
-	((= x 0) (* 2 y))
-	((= y 1) 2)
-	(else (A (- x 1)
-		 (A x (- y 1))))))
+   ((= x 0) (* 2 y))
+   ((= y 1) 2)
+   (else (A (- x 1)
+          (A x (- y 1))))))
 ; This was really hard (and fun!)
 ; (A 0 n) is equivalent to 2n
 ; (A 1 n) is equivalent to 2^n
@@ -129,18 +129,18 @@ Ok lets do this
 ; Exercise 1.11 {{{
 (define (foo n)
   (cond ((< n 3) n)
-	(else
-	  (+ (foo (- n 1))
-	     (* 2 (foo (- n 2)))
-	     (* 3 (foo (- n 3)))))))
+        (else
+            (+ (foo (- n 1)))
+            (* 2 (foo (- n 2)))))
+ (* 3 (foo (- n 3))))
 (define (foo-iter n)
   (define (helper count a b c)
     (if (= count (- n 2))
       c
       (helper (+ count 1)
-	      b
-	      c
-	      (+ c (* 2 b) (* 3 a)))))
+        b
+        c
+        (+ c (* 2 b) (* 3 a)))))
   (if (< n 3)
     n
     (helper 0 0 1 2)))
@@ -149,11 +149,12 @@ Ok lets do this
 ; Exercise 1.12 {{{
 (define (pascal x y)
   (cond ((= x 1) 1)
-	((= x y) 1)
-	((< x 1) 0)
-	((< y 1) 0)
-	((> x y) 0)
-	(else (+ (pascal x (- y 1)) (pascal (- x 1) (- y 1))))))
+        ((< x 1) 0)
+        ((< y 1) 0)
+        ((> x y) 0)
+        (else (+ 
+                (pascal x (- y 1)) 
+                (pascal (- x 1) (- y 1))))))
 ; }}}
 ; Exercise 1.13 {{{
 #|
@@ -190,5 +191,111 @@ Fuck dude I am not ready for Chapter 4
 
 |#
 ; }}}
+; Exercise 1.15 {{{
+(define (cube x) (* x x x))
+(define (p x) 
+  (begin
+    (display "p")
+    (newline)
+    (- (* 3 x) (* 4 (cube x)))))
+(define (sine angle)
+   (if (not (> (abs angle) 0.1))
+       angle
+       (p (sine (/ angle 3.0)))))
+
+; }}}
+; Section 1.2.4 {{{
+(define (expt-recursive b n)
+  (if (= n 0)
+    1
+    (* b (expt-recursive b (- n 1)))))
+
+
+(define (expt-linear b n)
+  (define (expt-iter b counter product)
+    (if (= counter 0)
+      product
+      (expt-iter b
+                 (- counter 1)
+                 (* b product))))
+  (expt-iter b n 1))
+
+(define (fast-expt b n)
+  (cond ((= n 0) 1)
+        ((even? n) (square (fast-expt b (/ n 2))))
+        (else
+          (* b (fast-expt b (- n 1))))))
+; }}}
+; Exercise 1.16{{{
+(define (fast-expt-linear b n)
+  (define (iter b n a)
+    (cond ((= n 0) a)
+          ((even? n) (iter (square b) (/ n 2) a))
+          (else (iter b (- n 1) (* a b)))))
+  (iter b n 1)) 
+; }}}
+; Exercise 1.17 {{{
+(define (fast-mult a b)
+  (define (double x) (* x 2))
+  (define (halve x) (/ x 2))
+  (cond ((= b 0) 0)
+        ((even? b) (double (fast-mult a (halve b))))
+        (else (+ a (fast-mult a (- b 1))))))
+; }}}
+; Exercise 1.18 {{{
+(define (fast-mult-linear a b)
+  (define (double x) (* x 2))
+  (define (halve x) (/ x 2))
+  (define (iter a b n)
+    (cond ((= b 0) n)
+          ((even? b) (iter (double a) (halve b) n))
+          (else (iter a (- b 1) (+ n a)))))
+  (iter a b 0))
+; }}}
+; Exercise 1.19 {{{
+(define (fib n)
+  (fib-iter 1 0 0 1 n))
+
+(define (fib-iter a b p q count)
+  (cond ((= count 0) 
+         b)
+        ((even? count)
+         (fib-iter a
+                   b
+                   (+ (square p) (square q))  ;compute p'
+                   (+ (square q) (* 2 p q))  ;compute q'
+                   (/ count 2)))
+        (else 
+         (fib-iter (+ (* b q) 
+                      (* a q) 
+                      (* a p))
+                   (+ (* b p) 
+                      (* a q))
+                   p
+                   q
+                   (- count 1)))))
+(fib 30)
+; }}}
+; Section 1.2.5 {{{
+(define (gcd a b)
+  (if (= b 0)
+      a
+      (gcd b (remainder a b))))
+; }}}
+; Exercise 1.20 {{{
+; (gcd 206 40)
+; (gcd 40 (remainder 206 40))
+; Remainder has to be calculated for equality check
+; (gcd 40 6)
+; (gcd 6 (remainder 40 6))
+; (gcd 6 4)
+; (gcd 4 (remainder 6 4))
+; (gcd 4 2)
+; (gcd 2 (remainder 4 2))
+; (gcd 2 0)
+; 2
+; Since remainder is calculated imediately every time; it leads to the same number of remainder calls in applicative vs normal order code
+; }}}
+
 ; }}}
 ; }}}
