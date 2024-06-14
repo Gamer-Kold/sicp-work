@@ -94,6 +94,20 @@ Exercise 1.1: Below is a sequence of expressions. What is the result printed by 
 (define (count-change amount)
   (cc amount 5))
 
+#|
+Ok lets do this
+
+
+                                                   (cc 11 2)
+                                                  /
+                                         (cc 11 3)
+                                        /         \
+                               (cc 11 4)           (cc 1 3)
+                              /         \                  \
+(count-change 11) -> (cc 11 5)           (cc -14 4) -> 0    (cc -9 3) -> 0
+                              \
+                               (cc -49 5) -> 0
+|#
 (define (cc amount kinds-of-coins)
   (cond ((= amount 0) 1)
         ((or (< amount 0) 
@@ -111,6 +125,7 @@ Exercise 1.1: Below is a sequence of expressions. What is the result printed by 
         ((= kinds-of-coins 3) 10)
         ((= kinds-of-coins 4) 25)
         ((= kinds-of-coins 5) 50))) 
+; }}}
 ; Exercise 1.11 {{{
 (define (foo n)
   (cond ((< n 3) n)
@@ -131,6 +146,49 @@ Exercise 1.1: Below is a sequence of expressions. What is the result printed by 
     (helper 0 0 1 2)))
 
 ; }}}
+; Exercise 1.12 {{{
+(define (pascal x y)
+  (cond ((= x 1) 1)
+	((= x y) 1)
+	((< x 1) 0)
+	((< y 1) 0)
+	((> x y) 0)
+	(else (+ (pascal x (- y 1)) (pascal (- x 1) (- y 1))))))
+; }}}
+; Exercise 1.13 {{{
+#|
+This one is a woozy
+phi = (1 + (sqrt 5))/2
+psi = (1 - (sqrt 5))/2
+We know for both psi and phi as x hold true
+(square x) = x + 1
+Assume the relation
+Fib(n) = (phi^n - psi^n)/(sqrt 5)
+Verify base cases
+Fib(0) = 0
+Fib(1) = 1
+
+Assume 
+Fib(k) = (phi^k - psi^k)/(sqrt 5)
+Fib(k+1) = (phi^(k+1) - psi^(k+1))/(sqrt 5)
+
+Fib(k+2) = Fib(k) + Fib(k+1)
+expanding we get
+Fib(k+2) = (phi^k + phi^(k+1) - psi^k - psi^(k-1))/(sqrt 5)
+which can be factorised down to
+Fib(k+2) = (phi^k * (1 + phi) - psi^k * (1 + psi))/(sqrt 5)
+we know that 1+phi = phi squared (same for psi) so
+Fib(k+2) = (phi^(k+2) - psi^(k+2))/(sqrt 5)
+so by induction the relation hold for all n > 0
+
+
+psi/(sqrt 5) is approx. 0
+so Fib(n) is approx. phi^n/(sqrt 5)
+so Fib(n) is the closest integer
+
+Fuck dude I am not ready for Chapter 4
+
+|#
 ; }}}
 ; }}}
 ; }}}
