@@ -1,3 +1,6 @@
+; Skipped excercises {{{
+; Exercise 1.42
+; }}}
 ; Chapter 1 {{{
 ; Section 1 {{{
 (define (square x) (* x x))
@@ -40,7 +43,7 @@ Exercise 1.1: Below is a sequence of expressions. What is the result printed by 
 
 (define (sqrt x)
   (sqrt-iter 1.0 x))
-; Excercise 1.7 {{{
+; Exercise 1.7 {{{
 (define (better-sqrt-iter prev-guess guess x)
   (define (good-enough? guess prev-guess)
     (< (abs (- guess prev-guess)) 0.0001))
@@ -68,7 +71,7 @@ Exercise 1.1: Below is a sequence of expressions. What is the result printed by 
 ; }}}
 ; }}}
 ; Section 1.2 {{{
-; Excercise 1.9 {{{
+; Exercise 1.9 {{{
 ; First is recursive
 ; Second is iterative
 ; }}}
@@ -296,6 +299,311 @@ Fuck dude I am not ready for Chapter 4
 ; 2
 ; Since remainder is calculated imediately every time; it leads to the same number of remainder calls in applicative vs normal order code
 ; }}}
+; Section 1.2.6 {{{
+(define (smallest-divisor n)
+  (find-divisor n 2))
 
+(define (find-divisor n test-divisor)
+  (cond ((> (square test-divisor) n) 
+         n)
+        ((divides? test-divisor n) 
+         test-divisor)
+        (else (find-divisor 
+               n 
+               (+ test-divisor 1)))))
+
+(define (divides? a b)
+  (= (remainder b a) 0))
+
+(define (prime? n)
+  (= n (smallest-divisor n)))
+
+(define (expmod base exp m)
+  (cond ((= exp 0) 1)
+        ((even? exp)
+         (remainder 
+          (square (expmod base (/ exp 2) m))
+          m))
+        (else
+         (remainder 
+          (* base (expmod base (- exp 1) m))
+          m))))
+
+(define (fermat-test n)
+  (define (try-it a)
+    (= (expmod a n n) a))
+  (try-it (+ 1 (random (- n 1)))))
+
+(define (fast-prime? n times)
+  (cond ((= times 0) true)
+        ((fermat-test n) 
+         (fast-prime? n (- times 1)))
+        (else false)))
+; }}}
+; Exercise 1.21 {{{
+(smallest-divisor 199); => 199
+(smallest-divisor 1999); => 1999
+(smallest-divisor 19999); => 7
+; }}}
+; Exercise 1.22 {{{
+(define (timed-prime-test n)
+  (newline)
+  (display n)
+  (start-prime-test n (runtime)))
+
+(define (start-prime-test n start-time)
+  (if (prime? n)
+      (report-prime (- (runtime) 
+                       start-time))))
+
+(define (report-prime elapsed-time)
+  (display " *** ")
+  (display elapsed-time))
+
+(define (search-for-primes from to)
+  (define (iter a)
+    (if (= a to)
+      '()
+      (begin
+        (timed-prime-test a)
+        (iter (+ a 1)))))
+  (iter from))
+   
+(search-for-primes 1000 1100) ; 3 smallest primes 1009, 1013, 1019
+(search-for-primes 10000 10100) ; 3 smallest primes 10007, 10009, 10037
+(search-for-primes 100000 100100) ; 3 smallest primes 100003, 100019, 100043
+(search-for-primes 1000000 1000100) ; 3 smallest primes 100003, 100019, 100043
+; }}}
+; Exercise 1.23 {{{
+; My computer too fast for this :sob:
+; }}}
+; The rest of these exercise dont seem worth the time investment
+; }}}
+; Section 1.3 {{{
+(define (sum term a next b)
+  (if (> a b)
+      0
+      (+ (term a)
+         (sum term (next a) next b))))
+; Exercise 1.29 {{{
+; This was boring so I skipped it
+; }}}
+; Exercise 1.30 {{{
+(define (sum-iter term a next b)
+  (define (helper a result)
+     (if (> a b)
+       result
+       (helper (next a)  (+ (term a) result))))
+  (helper a 0))
+
+; }}}
+; Exercise 1.31 {{{
+(define (product term a next b)
+  (if (> a b)
+      1
+      (* (term a)
+         (product term (next a) next b))))
+
+(define (fact-product n)
+  (product (lambda (x) x) 1 (lambda (x) (+ x 1)) n))
+
+(define (product-iter term a next b)
+  (define (helper a result)
+     (if (> a b)
+       result
+       (helper (next a)  (* (term a) result))))
+  (helper a 1))
+
+(define (identity x) x)
+; The formula in the book for Walis' product is confusing so I'm using the wikipedia definition of the thing here
+(define (walis-product n)
+  (product-iter (lambda (x) (/ (* 4 (square x)) (- (* 4 (square x)) 1))) 1 (lambda (x) (+ x 1)) n))
+(* 2.0 (walis-product 1000)) ; it's pretty damn close to pi
+; }}}
+; Exercise 1.32 {{{
+(define (accumulate combiner null-value term a next b)
+  (if (> a b)
+      null-value
+      (combiner (term a) 
+                (accumulate combiner null-value term (next a) next b))))
+         
+(define (accumulate-iter combiner null-value term a next b)
+  (define (helper a result)
+    (if (> a b)
+        result
+        (helper (next a) (combiner result a))))
+  (iter a null-value))
+
+(define (sum-accum term a next b)
+  (accumulate + 0 term a next b))
+(define (product-accum term a next b)
+  (accumulate * 1 term a next b))
+; }}}
+; Exercise 1.33 {{{
+(define (filtered-accumulate predicate combiner null-value term a next b)
+  (define (helper a result)
+    (if (> a b)
+        result
+        (helper (next a) (if (predicate a) (combiner result (term a)) result))))
+  (iter a null-value))
+; These other functions seem simple enough; skipping for now
+; }}}
+; Exercise 1.34 {{{
+; Let's take a look at this seriously:
+; (define (f g) (g 2))
+; if we call (f f) this is what happens
+; (f f)
+; (f 2)
+; (2 2) => ERROR 2 is not a function
+;}}}
+(define tolerance 0.00001)
+
+(define (fixed-point f first-guess)
+  (define (close-enough? v1 v2)
+    (< (abs (- v1 v2)) 
+       tolerance))
+  (define (try guess)
+    (let ((next (f guess)))
+      (if (close-enough? guess next)
+          next
+          (try next))))
+  (try first-guess))
+; Exercise 1.35 {{{
+; x -> 1 + 1/x
+; x -> x/x + 1/x
+; x -> (x + 1)/x
+; (multiply both sides by x)
+; x^2 -> x + 1 
+; which we know is true for phi
+(fixed-point (lambda (x) (+ 1 (/ 1 x))) 1.0) ; => 1.6180327868852458
+; }}}
+; Exercise 1.36 {{{
+(define (fixed-point f first-guess)
+  (define (close-enough? v1 v2)
+    (< (abs (- v1 v2)) 
+       tolerance))
+  (define (try guess)
+    (let ((next (f guess)))
+      (display guess)
+      (newline)
+      (if (close-enough? guess next)
+          next
+          (try next))))
+  (try first-guess))
+
+(fixed-point (lambda (x) (/ (log 1000) (log x))) 2) ; 33
+(fixed-point (lambda (x) (/ (+ x (/ (log 1000) (log x))) 2)) 2) ; 9
+;}}}
+; Exercise 1.37 {{{
+(define (cont-frac n d k)
+  (define (helper x)
+    (if (>= x k)
+      (/ (n k) (d k))
+      (/ (n x) (+ (d x) (helper (+ x 1))))))
+  (helper 1)) 
+(define (cont-frac-iter n d k)
+  (define (helper x result)
+    (if (>= 0 x)
+      result
+      (helper (- x 1) (/ (n x) (+ (d x) result)))))
+  (helper (- k 1) (/ (n k) (d k)))) 
+
+(/ 1 (cont-frac (lambda (x) 1.0)
+                (lambda (x) 1.0)
+                11))
+ 
+(/ 1 (cont-frac-iter (lambda (x) 1.0)
+                (lambda (x) 1.0)
+                11))
+; }}}
+; Exercise 1.38 {{{
+(define (foo x) ((lambda (x) (cond
+                               ((= x 1) 1)
+                               ((= x 2) 2)
+                               ((= (remainder (- x 2) 3) 0) (* (+  1 (/ (- x 2) 3)) 2))
+                               (else 1)) 
+                  x))) 
+(+ (cont-frac-iter (lambda (x) 1.0)
+              (lambda (x) foo x)
+              50) 2)
+; }}}
+; Exercise 1.39 {{{
+(define (tan-cf y k)
+  (cont-frac-iter (lambda (x) (if (= x 1)
+                                  y
+                                  (square y)))
+                  (lambda (x) (- (* 2 x) 1))
+                  k))
+; }}}
+(define (deriv g)
+  (define dx 0.00001)
+  (lambda (x)
+    (/ (- (g (+ x dx)) (g x))
+       dx)))
+
+(define (newton-transform g)
+  (lambda (x)
+    (- x (/ (g x) 
+            ((deriv g) x)))))
+
+(define (newtons-method g guess)
+  (fixed-point (newton-transform g) 
+               guess))
+; Exercise 1.40 {{{
+(define (cubic a b c)
+  (define (cube x) (* x x x))
+  (lambda (x) (+ (* a (cube x)) (* b (square x)) c)))
+; }}}
+; Exercise 1.41 {{{
+(define (double g)
+  (lambda (x) (g (g x))))
+(define (inc x) (+ x 1))
+(((double (double double)) inc) 5) ; 21
+; }}}
+; Exercise 1.40 {{{
+(define (compose f g)
+  (lambda (x) (f (g x))))
+; }}}
+; Exercise 1.42 {{{
+(define (repeated f n)
+  (define (helper a result) (if (<= a 0)
+                                result
+                                (helper (- a 1) (compose f result))))
+  (helper (- n 1) f)) 
+
+((repeated inc 4) 5)
+                              
+     
+; }}}
+; Exercise 1.42 {{{
+(define (smooth f)
+  (define dx 0.00001)
+  (lambda (x) (/ (+ (f x) (f (- x dx)) (f (+ x dx))) 3)))     
+
+(define (n-fold-smooth f n)
+  ((repeated smooth n) f))
+; }}}
+; Exercise 1.42 {{{
+; No idea about this one
+(define (average-damp f)
+  (define (average x y) (/ (+ x y) 2))
+  (lambda (x) 
+    (average x (f x))))
+
+(define (fixed-point-of-transform 
+         g transform guess)
+  (fixed-point (transform g) guess))
+
+(define (nth-root x n k)
+  (fixed-point-of-transform (lambda (y) (/ x (expt y (- n 1)))) (repeated average-damp k) 1.0))
+
+; }}}
+; Exercise 1.43 {{{
+(define (iterative-improve good-enough? improve)
+  (define (helper guess) (if (good-enough? guess)
+                             guess
+                             (helper (improve guess))))
+  (lambda (guess) (helper guess)))
+                      
 ; }}}
 ; }}}
